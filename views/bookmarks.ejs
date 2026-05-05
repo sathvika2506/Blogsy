@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saved Stories — Blogsy</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/style.css" rel="stylesheet" />
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="container mt-5">
+    <h2 class="section-heading">🔖 Saved Stories</h2>
+
+    <% if (posts.length === 0) { %>
+      <div class="text-center py-5" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);">
+        <p style="font-size:3rem;">📚</p>
+        <h4>Your reading list is empty</h4>
+        <p class="text-muted">Save stories you want to read later.</p>
+        <a href="/" class="btn-primary-warm mt-2">Explore Stories</a>
+      </div>
+    <% } else { %>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        <% posts.forEach(post => { %>
+          <div class="col">
+            <div class="blog-card">
+              <% if (post.cover_image) { %>
+                <img src="<%= post.cover_image %>" class="card-cover" alt="<%= post.title %>">
+              <% } %>
+              <div class="card-body">
+                <h5 class="card-title">
+                  <a href="/posts/<%= post.id %>" style="color:inherit;"><%= post.title %></a>
+                </h5>
+                <p class="card-excerpt"><%= post.content.replace(/[#*`>]/g, '').slice(0, 100) %>...</p>
+                <div class="card-footer-custom mt-auto">
+                  <span class="author-name-sm"><%= post.author_name || 'Anonymous' %></span>
+                  <a href="/posts/<%= post.id %>" class="btn-sm-warm">Read</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <%- include('partials/footer') %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

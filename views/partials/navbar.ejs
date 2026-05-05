@@ -1,0 +1,89 @@
+<%
+  // Determine which nav link is active
+  const path = locals.path || '';
+%>
+<nav class="navbar navbar-expand-lg custom-navbar shadow-sm py-3">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <img src="/icon.png" alt="Blogsy" width="28" height="28" class="me-2" style="border-radius:6px;">Blogsy
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <form class="d-flex mx-auto search-form" role="search" method="GET" action="/search">
+        <div class="input-group">
+          <input class="form-control search-input" type="search" name="query" placeholder="Search posts..." />
+          <button class="btn btn-search" type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <ul class="navbar-nav ms-3 align-items-center gap-2">
+        <li class="nav-item">
+          <a class="nav-link nav-icon-link" href="/" title="Home">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 6.982C9.664 5.309 13.825 8.236 8 12 2.175 8.236 6.336 5.309 8 6.982"/>
+              <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.707L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.646a.5.5 0 0 0 .708-.707L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293z"/>
+            </svg>
+            <span>Home</span>
+          </a>
+        </li>
+
+        <% if (currentUser) { %>
+          <li class="nav-item">
+            <a class="nav-link nav-icon-link" href="/compose" title="Compose">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+              </svg>
+              <span>Write</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-icon-link" href="/bookmarks" title="Bookmarks">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5z"/>
+              </svg>
+              <span>Saved</span>
+            </a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link d-flex align-items-center gap-2 user-avatar-link" href="#" data-bs-toggle="dropdown">
+              <% if (currentUser.avatar_url) { %>
+                <img src="<%= currentUser.avatar_url %>" alt="<%= currentUser.name %>" class="nav-avatar">
+              <% } else { %>
+                <div class="nav-avatar-placeholder"><%= currentUser.name.charAt(0).toUpperCase() %></div>
+              <% } %>
+              <span class="fw-semibold"><%= currentUser.name.split(' ')[0] %></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end custom-dropdown">
+              <li><a class="dropdown-item" href="/dashboard">📊 Dashboard</a></li>
+              <li><a class="dropdown-item" href="/profile/edit">✏️ Edit Profile</a></li>
+              <li><a class="dropdown-item" href="/author/<%= currentUser.id %>">👤 My Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="/logout">🚪 Log Out</a></li>
+            </ul>
+          </li>
+        <% } else { %>
+          <li class="nav-item">
+            <a class="nav-link" href="/login">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-primary-warm btn-sm" href="/register">Get Started</a>
+          </li>
+        <% } %>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

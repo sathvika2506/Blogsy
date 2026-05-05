@@ -1,85 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-  <link rel="stylesheet" href="/style.css" />
-  <title>Edit Post</title>
-</head>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Edit Post</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Post — Blogsy</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Quicksand', sans-serif;
-      background-color: #fff5f8;
-    }
-
-    .blogsy-box {
-      background-color: #ffffff;
-      padding: 2.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-    }
-    .btn-custom {
-      background-color: turquoise;
-      color: white;
-      border: none;
-    }
-    .btn-custom:hover {
-      background-color: #ff3e6c;
-      color: white;
-    }
-
-    textarea,
-    input[type="text"] {
-      border-radius: 0.5rem;
-      border: 1px solid #dee2e6;
-    }
-
-    h2 {
-      color: #333;
-    }
-  </style>
+  <link href="/style.css" rel="stylesheet" />
 </head>
-
 <body>
-  <div class="container mt-5">
-    <div class="blogsy-box">
-      <h2 class="fw-bold mb-4 text-center">✏️ Edit Your Post</h2>
-      <form action="/posts/<%= id %>/edit" method="POST">
+  <%- include('partials/navbar') %>
+  <div class="container">
+    <div class="compose-page">
+      <h2 style="font-size:1.8rem;margin-bottom:0.25rem;">✏️ Edit Your Story</h2>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem;">Make your story even better</p>
+
+      <form action="/posts/<%= post.id %>/edit" method="POST">
         <div class="mb-3">
-          <label for="postTitle" class="form-label fw-semibold">Title</label>
-          <input type="text" class="form-control" id="postTitle" name="postTitle" value="<%= title %>" required>
+          <label for="postTitle" class="form-label">Title</label>
+          <input type="text" id="postTitle" name="postTitle" class="form-control"
+            value="<%= post.title %>" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="cover_image" class="form-label">Cover Image URL</label>
+          <input type="url" id="cover_image" name="cover_image" class="form-control"
+            value="<%= post.cover_image || '' %>" placeholder="https://..." />
+        </div>
+
+        <div class="mb-3">
+          <label for="postBody" class="form-label">Content <span style="font-weight:400;color:var(--text-muted)">(Markdown)</span></label>
+          <div class="editor-toolbar">
+            <button type="button" onclick="wrap('**','**')"><b>B</b></button>
+            <button type="button" onclick="wrap('*','*')"><i>I</i></button>
+            <button type="button" onclick="wrap('# ','')">H1</button>
+            <button type="button" onclick="wrap('## ','')">H2</button>
+            <button type="button" onclick="wrap('> ','')">❝</button>
+            <button type="button" onclick="wrap('`','`')">{'`'}</button>
+            <button type="button" onclick="wrap('[','](url)')">🔗</button>
+          </div>
+          <textarea id="postBody" name="postBody" class="form-control with-toolbar"
+            rows="14" required><%= post.content %></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="tags" class="form-label">Tags</label>
+          <input type="text" id="tags" name="tags" class="form-control"
+            value="<%= post.tags ? post.tags.join(', ') : '' %>" placeholder="lifestyle, travel" />
         </div>
 
         <div class="mb-4">
-          <label for="postBody" class="form-label fw-semibold">Content</label>
-          <textarea class="form-control" id="postBody" name="postBody" rows="6" required><%= content %></textarea>
+          <label class="form-label">Status</label>
+          <div class="d-flex gap-3">
+            <label style="font-size:0.88rem;cursor:pointer;">
+              <input type="radio" name="status" value="published" <%= post.status === 'published' ? 'checked' : '' %> /> Published
+            </label>
+            <label style="font-size:0.88rem;cursor:pointer;">
+              <input type="radio" name="status" value="draft" <%= post.status === 'draft' ? 'checked' : '' %> /> Draft
+            </label>
+          </div>
         </div>
 
-        <button type="submit" class="btn btn-custom w-100">Update Post</button>
+        <div class="d-flex gap-3">
+          <button type="submit" class="btn-primary-warm py-2" style="border-radius:var(--radius-sm);flex:1;">Save Changes</button>
+          <a href="/posts/<%= post.id %>" class="btn-outline-warm py-2" style="border-radius:var(--radius-sm);">Cancel</a>
+        </div>
       </form>
     </div>
   </div>
+  <%- include('partials/footer') %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function wrap(before, after) {
+      const ta = document.getElementById('postBody');
+      const start = ta.selectionStart, end = ta.selectionEnd;
+      const sel = ta.value.substring(start, end);
+      ta.value = ta.value.substring(0, start) + before + sel + after + ta.value.substring(end);
+      ta.focus();
+    }
+  </script>
 </body>
-
-</html>
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
-</body>
-
 </html>

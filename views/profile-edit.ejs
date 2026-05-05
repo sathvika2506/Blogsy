@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Profile — Blogsy</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/style.css" rel="stylesheet" />
+</head>
+<body>
+  <%- include('partials/navbar') %>
+  <div class="container">
+    <div class="form-page" style="max-width:600px;">
+      <h2 style="font-size:1.8rem;margin-bottom:1.5rem;">👤 Edit Profile</h2>
+      <% if (error) { %><div class="alert-warm-error"><%= error %></div><% } %>
+      <% if (success) { %><div class="alert-warm-success"><%= success %></div><% } %>
+
+      <form action="/profile/edit" method="POST">
+        <div class="mb-4 text-center">
+          <% if (user.avatar_url) { %>
+            <img src="<%= user.avatar_url %>" alt="Avatar" class="profile-avatar mb-2">
+          <% } else { %>
+            <div class="profile-avatar-placeholder mb-2 mx-auto"><%= user.name.charAt(0) %></div>
+          <% } %>
+          <input type="url" id="avatar_url" name="avatar_url" class="form-control form-control-sm mx-auto" 
+            style="max-width:300px;" value="<%= user.avatar_url || '' %>" placeholder="Avatar Image URL (optional)" />
+        </div>
+
+        <div class="mb-3">
+          <label for="name" class="form-label">Display Name</label>
+          <input type="text" id="name" name="name" class="form-control" value="<%= user.name %>" required />
+        </div>
+        
+        <div class="mb-3">
+          <label for="bio" class="form-label">Bio / About Me</label>
+          <textarea id="bio" name="bio" class="form-control" rows="3" placeholder="Tell readers about yourself..."><%= user.bio || '' %></textarea>
+        </div>
+
+        <h6 style="font-family:'Playfair Display',serif;margin-top:1.5rem;color:var(--text-mid);">Social Links</h6>
+        <div class="mb-3">
+          <input type="text" name="twitter" class="form-control mb-2" value="<%= user.twitter || '' %>" placeholder="Twitter Username (e.g. blogsy)" />
+          <input type="text" name="instagram" class="form-control mb-2" value="<%= user.instagram || '' %>" placeholder="Instagram Username" />
+          <input type="url" name="website" class="form-control" value="<%= user.website || '' %>" placeholder="Personal Website URL" />
+        </div>
+
+        <div class="d-flex gap-3 mt-4">
+          <button type="submit" class="btn-primary-warm py-2" style="flex:1;">Save Profile</button>
+          <a href="/dashboard" class="btn-outline-warm py-2">Back to Dashboard</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <%- include('partials/footer') %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

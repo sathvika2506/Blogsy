@@ -1,0 +1,27 @@
+<footer class="site-footer mt-5 py-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+        <a class="footer-brand" href="/">Blogsy</a>
+        <p class="footer-tagline">Your cozy corner of the internet.</p>
+      </div>
+      <div class="col-md-4 text-center mb-3 mb-md-0">
+        <div class="footer-links">
+          <a href="/">Home</a>
+          <a href="/about">About</a>
+          <% if (currentUser) { %>
+            <a href="/compose">Write</a>
+            <a href="/dashboard">Dashboard</a>
+          <% } else { %>
+            <a href="/register">Join</a>
+            <a href="/login">Login</a>
+          <% } %>
+        </div>
+      </div>
+      <div class="col-md-4 text-center text-md-end">
+        <p class="footer-copy">© <%= new Date().getFullYear() %> Blogsy</p>
+        <p class="footer-made">Made with 🌸 by <a href="https://yourportfolio.com">Sathvika</a></p>
+      </div>
+    </div>
+  </div>
+</footer>

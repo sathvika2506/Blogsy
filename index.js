@@ -1,102 +1,62 @@
-// index.js (without authentication)
-
 import express from "express";
+import session from "express-session";
 import bodyParser from "body-parser";
-import pg from "pg";
-import { v4 as uuidv4 } from "uuid";
+import dotenv from "dotenv";
+dotenv.config();
 
-const { Pool } = pg;
+import { attachUser } from "./middleware/auth.js";
+import authRoutes from "./routes/authRoutes.js";
+import blogRoutes from "./routes/blogRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import engagementRoutes from "./routes/engagementRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
+
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "posts",
-  password: "Vistara@123",
-  port: 5432,
-});
-
+// View engine
 app.set("view engine", "ejs");
-app.use(bodyParser.urlencoded({ extended: true }));
+app.set("views", "./views");
+
+// Static files
 app.use(express.static("public"));
 
-app.get("/", async (req, res) => {
-  const result = await pool.query("SELECT * FROM posts ORDER BY id DESC");
-  res.render("home", { posts: result.rows });
+// Body parsing
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Session
+app.use(session({
+  secret: process.env.SESSION_SECRET || "blogsy_secret_key",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 days
+}));
+
+// Attach user to all views
+app.use(attachUser);
+
+// Routes
+app.use("/", authRoutes);
+app.use("/", blogRoutes);
+app.use("/", userRoutes);
+app.use("/", engagementRoutes);
+app.use("/", aiRoutes);
+
+// About page
+app.get("/about", (req, res) => res.render("about"));
+
+// 404 fallback
+app.use((req, res) => {
+  res.status(404).render("error", { message: "Page not found." });
 });
 
-app.get("/compose", (req, res) => {
-  res.render("compose");
-});
-
-app.post("/compose", async (req, res) => {
-  const { postTitle, postBody } = req.body;
-  await pool.query(
-    "INSERT INTO posts (id, title, content) VALUES ($1, $2, $3)",
-    [uuidv4(), postTitle, postBody]
-  );
-  res.redirect("/");
-});
-
-app.get("/posts/:postId", async (req, res) => {
-  const postId = req.params.postId;
-  const result = await pool.query("SELECT * FROM posts WHERE id = $1", [postId]);
-  const post = result.rows[0];
-  if (post) {
-    res.render("post", { title: post.title, content: post.content });
-  } else {
-    res.status(404).send("Post not found");
-  }
-});
-
-app.get("/posts/:postId/edit", async (req, res) => {
-  const postId = req.params.postId;
-  const result = await pool.query("SELECT * FROM posts WHERE id = $1", [postId]);
-  const post = result.rows[0];
-  if (post) {
-    res.render("edit", {
-      id: post.id,
-      title: post.title,
-      content: post.content
-    });
-  } else {
-    res.status(404).send("Post not found");
-  }
-});
-app.get("/search", async (req, res) => {
-  const query = req.query.query;
-  try {
-    const result = await pool.query(
-      "SELECT * FROM posts WHERE LOWER(title) LIKE $1 OR LOWER(content) LIKE $1",
-      [`%${query.toLowerCase()}%`]
-    );
-    res.render("search", { posts: result.rows, searchQuery: query });
-  } catch (err) {
-    res.status(500).send("Error searching posts");
-  }
-});
-
-app.post("/posts/:postId/edit", async (req, res) => {
-  const postId = req.params.postId;
-  const { postTitle, postBody } = req.body;
-  await pool.query(
-    "UPDATE posts SET title = $1, content = $2 WHERE id = $3",
-    [postTitle, postBody, postId]
-  );
-  res.redirect("/");
-});
-
-app.post("/posts/:postId/delete", async (req, res) => {
-  const postId = req.params.postId;
-  await pool.query("DELETE FROM posts WHERE id = $1", [postId]);
-  res.redirect("/");
-});
-
-app.get("/about", (req, res) => {
-  res.render("about");
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).render("error", { message: "Something went wrong." });
 });
 
 app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  console.log(`✨ Blogsy running on http://localhost:${port}`);
 });

@@ -1,55 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>
-    <%= title %>
-  </title>
+  <title><%= post.title %> — Blogsy</title>
+  <meta name="description" content="<%= post.summary || post.content.slice(0, 150) %>" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Quicksand', sans-serif;
-      background-color: #fffdfd;
-    }
-
-    .blogsy-box {
-      background-color: #ffffff;
-      padding: 3rem;
-      border-radius: 1rem;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-    }
-
-    .btn-back {
-      background-color: #66bfbf;
-      color: white;
-    }
-
-    .btn-back:hover {
-      background-color: #ff6f91;
-    }
-
-    h1 {
-      color: #ff6f91;
-    }
-  </style>
+  <link href="/style.css" rel="stylesheet" />
 </head>
-
 <body>
-  <div class="container mt-5">
-    <div class="blogsy-box">
-      <h1 class="fw-bold mb-3">
-        <%= title %>
-      </h1>
-      <p class="text-muted" style="white-space: pre-line;">
-        <%= content %>
-      </p>
-      <a href="/" class="btn btn-back mt-4">← Back to Home</a>
-    </div>
-  </div>
-</body>
+  <%- include('partials/navbar') %>
 
+  <div class="container mt-4" style="max-width:800px;">
+
+    <!-- Post Hero -->
+    <div class="post-hero">
+      <!-- Tags -->
+      <% if (post.tags && post.tags.length > 0) { %>
+        <div class="mb-3">
+          <% post.tags.forEach(tag => { %>
+            <a href="/search?tag=<%= tag %>" class="tag-badge me-1"><%= tag %></a>
+          <% }) %>
+        </div>
+      <% } %>
+      <h1><%= post.title %></h1>
+
+      <!-- Author + Meta -->
+      <div class="d-flex align-items-center gap-3 mt-3 flex-wrap">
+        <div class="author-mini">
+          <% if (post.author_avatar) { %>
+            <img src="<%= post.author_avatar %>" alt="<%= post.author_name %>" class="author-avatar-sm" style="width:36px;height:36px;">
+          <% } else { %>
+            <div class="author-placeholder-sm" style="width:36px;height:36px;font-size:0.85rem;">
+              <%= post.author_name ? post.author_name.charAt(0).toUpperCase() : 'A' %>
+            </div>
+          <% } %>
+          <div>
+            <a href="/author/<%= post.user_id %>" class="author-name-sm d-block" style="font-size:0.9rem;"><%= post.author_name || 'Anonymous' %></a>
+            <span class="post-date-sm"><%= new Date(post.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) %></span>
+          </div>
+        </div>
+        <div class="ms-auto d-flex gap-3">
+          <span class="stat-badge">👁 <%= post.views || 0 %> views</span>
+          <span class="stat-badge">❤️ <span id="like-count"><%= post.like_count || 0 %></span></span>
+          <span class="stat-badge">💬 <%= post.comment_count || 0 %></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cover image -->
+    <% if (post.cover_image) { %>
+      <img src="<%= post.cover_image %>" alt="<%= post.title %>" style="width:100%;border-radius:var(--radius-lg);margin-bottom:1.5rem;max-height:420px;object-fit:cover;">
+    <% } %>
+
+    <!-- TL;DR Summary -->
+    <% if (post.summary) { %>
+      <div class="summary-box">
+        <h6>✨ TL;DR SUMMARY</h6>
+        <p style="margin:0;font-size:0.92rem;color:var(--text-mid);"><%= post.summary %></p>
+      </div>
+    <% } %>
+
+    <!-- Post Content -->
+    <div class="post-content">
+      <%- post.rendered_content %>
+    </div>
+
+    <!-- Engagement Bar -->
+    <div class="engage-bar">
+      <% if (currentUser) { %>
+        <button id="like-btn" class="engage-btn <%= userLiked ? 'active' : '' %>"
+          onclick="toggleLike('<%= post.id %>')">
+          ❤️ <span id="like-label"><%= userLiked ? 'Liked' : 'Like' %></span>
+        </button>
+        <button id="bm-btn" class="engage-btn <%= userBookmarked ? 'bookmarked' : '' %>"
+          onclick="toggleBookmark('<%= post.id %>')">
+          🔖 <span id="bm-label"><%= userBookmarked ? 'Saved' : 'Save' %></span>
+        </button>
+      <% } else { %>
+        <a href="/login" class="engage-btn">❤️ Like</a>
+        <a href="/login" class="engage-btn">🔖 Save</a>
+      <% } %>
+
+      <% if (currentUser && (currentUser.id === post.user_id || isAdmin)) { %>
+        <a href="/posts/<%= post.id %>/edit" class="engage-btn ms-auto">✏️ Edit</a>
+        <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Delete this post?')">
+          <button type="submit" class="engage-btn" style="color:#c0392b;border-color:#c0392b;">🗑 Delete</button>
+        </form>
+      <% } %>
+    </div>
+
+    <!-- Ask This Blog (AI) -->
+    <div class="ask-blog-section" id="ask-section">
+      <h5 style="font-family:'Playfair Display',serif;color:var(--primary);margin-bottom:0.75rem;">🤖 Ask This Blog</h5>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">Have a question about this post? Ask our AI.</p>
+      <div class="d-flex gap-2">
+        <input type="text" id="ask-input" class="form-control" placeholder="e.g. What are the main tips mentioned?" style="flex:1;" />
+        <button onclick="askBlog()" class="btn-primary-warm" style="white-space:nowrap;border-radius:var(--radius-sm);padding:0.5rem 1rem;">Ask</button>
+      </div>
+      <div id="ask-result" class="ai-result mt-2" style="display:none;"></div>
+    </div>
+
+    <!-- Comments -->
+    <div id="comments" class="mt-4">
+      <h4 style="font-family:'Playfair Display',serif;margin-bottom:1rem;">💬 Comments (<%= post.comment_count || 0 %>)</h4>
+
+      <% if (currentUser) { %>
+        <form action="/posts/<%= post.id %>/comment" method="POST" class="mb-3">
+          <textarea name="content" class="comment-input" placeholder="Share your thoughts..." required></textarea>
+          <button type="submit" class="btn-sm-warm mt-2">Post Comment</button>
+        </form>
+      <% } else { %>
+        <div style="background:var(--bg);border:1.5px dashed var(--border);border-radius:var(--radius-md);padding:1rem;text-align:center;margin-bottom:1rem;">
+          <a href="/login" style="color:var(--primary);font-weight:600;">Sign in</a> to leave a comment.
+        </div>
+      <% } %>
+
+      <% if (comments.length === 0) { %>
+        <p class="text-muted" style="font-size:0.88rem;">No comments yet. Be the first!</p>
+      <% } %>
+      <% comments.forEach(comment => { %>
+        <div class="comment-card">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="author-mini mb-2">
+              <% if (comment.author_avatar) { %>
+                <img src="<%= comment.author_avatar %>" alt="" class="author-avatar-sm">
+              <% } else { %>
+                <div class="author-placeholder-sm"><%= comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'A' %></div>
+              <% } %>
+              <div>
+                <span class="author-name-sm"><%= comment.author_name || 'Anonymous' %></span>
+                <span class="post-date-sm ms-2"><%= new Date(comment.created_at).toLocaleDateString() %></span>
+              </div>
+            </div>
+            <% if (currentUser && (currentUser.id === comment.user_id || isAdmin)) { %>
+              <form action="/comments/<%= comment.id %>/delete" method="POST">
+                <button type="submit" class="btn-ghost" style="font-size:0.75rem;padding:0.2rem 0.6rem;color:#c0392b;border-color:#c0392b;">✕</button>
+              </form>
+            <% } %>
+          </div>
+          <p style="margin:0;font-size:0.9rem;color:var(--text-dark)"><%= comment.content %></p>
+        </div>
+      <% }) %>
+    </div>
+
+    <!-- Recommended Posts -->
+    <% if (recommended.length > 0) { %>
+    <div class="recommended-section">
+      <h4 class="section-heading">📚 You Might Also Like</h4>
+      <div class="row g-3">
+        <% recommended.forEach(rec => { %>
+          <div class="col-md-4">
+            <div class="blog-card">
+              <div class="card-body">
+                <h6 class="card-title" style="font-size:0.95rem;"><%= rec.title %></h6>
+                <p style="font-size:0.8rem;color:var(--text-muted)"><%= rec.content.replace(/[#*`>]/g,'').slice(0,80) %>...</p>
+                <a href="/posts/<%= rec.id %>" class="btn-sm-warm">Read</a>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="mt-4 mb-5">
+      <a href="/" class="btn-outline-warm">← Back to Home</a>
+    </div>
+
+  </div>
+
+  <%- include('partials/footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    async function toggleLike(postId) {
+      const btn = document.getElementById('like-btn');
+      const label = document.getElementById('like-label');
+      const count = document.getElementById('like-count');
+      try {
+        const res = await fetch(`/posts/${postId}/like`, { method: 'POST' });
+        const data = await res.json();
+        btn.classList.toggle('active', data.liked);
+        label.textContent = data.liked ? 'Liked' : 'Like';
+        count.textContent = data.count;
+      } catch (e) { console.error(e); }
+    }
+
+    async function toggleBookmark(postId) {
+      const btn = document.getElementById('bm-btn');
+      const label = document.getElementById('bm-label');
+      try {
+        const res = await fetch(`/posts/${postId}/bookmark`, { method: 'POST' });
+        const data = await res.json();
+        btn.classList.toggle('bookmarked', data.bookmarked);
+        label.textContent = data.bookmarked ? 'Saved' : 'Save';
+      } catch (e) { console.error(e); }
+    }
+
+    async function askBlog() {
+      const question = document.getElementById('ask-input').value;
+      const resultBox = document.getElementById('ask-result');
+      if (!question.trim()) return;
+      resultBox.style.display = 'block';
+      resultBox.textContent = '✨ Thinking...';
+      const content = `<%= post.content.replace(/`/g, "'").replace(/\n/g, ' ').slice(0, 3000) %>`;
+      try {
+        const res = await fetch('/ai/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, question })
+        });
+        const data = await res.json();
+        resultBox.textContent = data.result;
+      } catch(e) { resultBox.textContent = 'Unable to answer at the moment.'; }
+    }
+  </script>
+</body>
 </html>
