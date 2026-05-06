@@ -1,6 +1,6 @@
-// config/db.js
+import pg from "pg";
 
-const { Pool } = require('pg');
+const { Pool } = pg;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -11,10 +11,10 @@ const pool = new Pool({
 
 pool.connect((err) => {
   if (err) {
-    console.error('Database connection error:', err);
+    console.error("Database connection error:", err);
   } else {
-    console.log('✅ Connected to Neon PostgreSQL');
+    console.log("✅ Connected to Neon PostgreSQL");
   }
 });
 
-module.exports = pool;
+export default pool;
