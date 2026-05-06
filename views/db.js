@@ -1,3 +1,5 @@
+// config/db.js
+
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -5,6 +7,14 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false,
   },
+});
+
+pool.connect((err) => {
+  if (err) {
+    console.error('Database connection error:', err);
+  } else {
+    console.log('✅ Connected to Neon PostgreSQL');
+  }
 });
 
 module.exports = pool;
