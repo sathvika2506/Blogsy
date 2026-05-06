@@ -2,6 +2,8 @@ import pg from "pg";
 
 const { Pool } = pg;
 
+console.log("DATABASE_URL:", process.env.DATABASE_URL);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -9,12 +11,12 @@ const pool = new Pool({
   },
 });
 
-pool.connect((err) => {
-  if (err) {
-    console.error("Database connection error:", err);
-  } else {
+pool.connect()
+  .then(() => {
     console.log("✅ Connected to Neon PostgreSQL");
-  }
-});
+  })
+  .catch((err) => {
+    console.error("❌ DB CONNECTION ERROR:", err);
+  });
 
 export default pool;
